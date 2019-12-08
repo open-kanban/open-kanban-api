@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { CardData } from '../../src/card';
+import { CardData } from '../../src/entities/card';
 
 export const getFakeCardData = (): CardData => ({
   id: faker.random.alphaNumeric(10),

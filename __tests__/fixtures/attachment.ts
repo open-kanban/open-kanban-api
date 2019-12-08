@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { AttachmentData } from '../../src/attachment';
+import { AttachmentData } from '../../src/entities/attachment';
 
 export const getFakeAttachmentData = (): AttachmentData => ({
   id: faker.random.alphaNumeric(10),

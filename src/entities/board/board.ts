@@ -19,7 +19,7 @@ export type Board = {
 };
 
 export default function buildMakeBoard({ generateId }: BoardFactoryDependencies): BoardFactory {
-  return function makeBoard({ id = generateId(), userId, invitedUsersIds, name }): Board {
+  return function makeBoard({ id = generateId(), userId, invitedUsersIds = [], name }) {
     if (!userId) throw new Error('User ID must be provided');
     if (!name) throw new Error('Name must be provided');
 

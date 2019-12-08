@@ -13,7 +13,7 @@ export type CommentData = {
   readonly text: string;
   readonly createdAt?: number;
   readonly modifiedAt?: number;
-  readonly deletedAt?: number;
+  readonly deletedAt?: number | null;
 };
 
 export type Comment = {
@@ -24,7 +24,7 @@ export type Comment = {
   readonly getText: () => string;
   readonly getCreatedAt: () => number;
   readonly getModifiedAt: () => number;
-  readonly getDeletedAt: () => number;
+  readonly getDeletedAt: () => number | null;
   readonly delete: () => void;
   readonly restore: () => void;
 };
@@ -41,7 +41,7 @@ export default function buildMakeComment({
     text,
     createdAt = getCurrentDate(),
     modifiedAt = getCurrentDate(),
-    deletedAt,
+    deletedAt = null,
   }): Comment {
     if (!entityId) throw new Error('Entity ID must be provided');
     if (!authorId) throw new Error('Author ID must be provided');

@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { CommentData } from '../../src/comment';
+import { CommentData } from '../../src/entities/comment';
 
 export const getFakeCommentData = (): CommentData => ({
   id: faker.random.alphaNumeric(10),
