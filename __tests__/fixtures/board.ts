@@ -14,3 +14,10 @@ export const makeFakeBoard = () => ({
   getInvitedUsersIds: jest.fn(),
   getName: jest.fn(),
 });
+
+export const getBoardsModelMock = () => ({
+  get: jest.fn(),
+  count: jest.fn(),
+  findById: jest.fn(),
+  save: jest.fn(),
+});

@@ -1,3 +1,4 @@
+const nodeExternals = require('webpack-node-externals');
 const path = require('path');
 
 module.exports = {
@@ -9,6 +10,7 @@ module.exports = {
     filename: 'bundle.js',
     chunkFilename: '[name].js',
   },
+  target: 'node',
   module: {
     rules: [
       {
@@ -32,4 +34,5 @@ module.exports = {
     host: 'localhost',
     port: 8080,
   },
+  externals: [nodeExternals()],
 };

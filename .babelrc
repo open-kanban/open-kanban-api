@@ -9,5 +9,6 @@
       }
     ],
     "@babel/typescript"
-  ]
+  ],
+  "plugins": ["@babel/plugin-proposal-optional-chaining"]
 }
