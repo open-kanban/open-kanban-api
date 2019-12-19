@@ -1,5 +1,5 @@
-import app from './server';
 import { connectToDatabase } from './database';
+import app from './server';
 
 const port = 3000;
 

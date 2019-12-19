@@ -2,7 +2,7 @@ import { RequestHandler, Response } from 'express-serve-static-core';
 import jwt from 'jsonwebtoken';
 
 export default function makeWithAuthentication(): RequestHandler {
-  return async function withAuthentication(req, res, next) {
+  return async function withAuthentication(req, res, next): Promise<void> {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       forbidRequest(res);
@@ -25,7 +25,7 @@ export default function makeWithAuthentication(): RequestHandler {
   };
 }
 
-const forbidRequest = (res: Response) => {
+const forbidRequest = (res: Response): void => {
   res.type('json');
   res.status(403);
   res.send({

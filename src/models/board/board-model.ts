@@ -1,9 +1,8 @@
-import { Document, Schema, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { BoardData } from '../../app/entities/board';
 import { BoardModel } from '../../app/use-cases/boards';
-import { User, UserDocument } from '../user/user-model';
-import { ObjectID } from 'mongodb';
 import { ColumnDocument } from '../column/column-model';
+import { User, UserDocument } from '../user/user-model';
 
 export interface BoardDocument extends Document {
   name: string;
@@ -13,7 +12,7 @@ export interface BoardDocument extends Document {
 
 export default function makeBoardModel(): BoardModel {
   return {
-    count: async function count({ userId }: { userId: string }) {
+    count: async function count({ userId }: { userId: string }): Promise<number> {
       const user = await User.findById(userId);
       if (!user) return 0;
 
@@ -27,7 +26,7 @@ export default function makeBoardModel(): BoardModel {
       userId: string;
       limit?: number;
       offset?: number;
-    }) {
+    }): Promise<Required<BoardData>[]> {
       const user = await User.findById(userId, 'boards');
       if (!user) return [];
 
@@ -38,7 +37,7 @@ export default function makeBoardModel(): BoardModel {
         invitedUsersIds: board.invitedUsersIds,
       }));
     },
-    findById: async function findById(boardId: string) {
+    findById: async function findById(boardId: string): Promise<Required<BoardData> | null> {
       const user = await User.findOne({ 'boards._id': boardId }, 'boards');
       if (!user) return null;
 
@@ -51,7 +50,10 @@ export default function makeBoardModel(): BoardModel {
         invitedUsersIds: board.invitedUsersIds,
       };
     },
-    save: async function save({ userId, ...boardData }: Required<BoardData>) {
+    save: async function save({
+      userId,
+      ...boardData
+    }: Required<BoardData>): Promise<Required<BoardData>> {
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 

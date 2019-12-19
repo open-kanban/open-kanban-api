@@ -1,4 +1,5 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { UserData } from '../../app/entities/user';
 import { UserModel } from '../../app/use-cases/users';
 import { BoardDocument } from '../board/board-model';
 
@@ -32,7 +33,7 @@ export const User = model<UserDocument>('User', userSchema);
 
 export default function makeUserModel(): UserModel {
   return {
-    findByEmail: async (email: string) => {
+    findByEmail: async (email: string): Promise<Required<UserData> | null> => {
       const user = await User.findOne({ email });
       if (!user) return null;
 
@@ -44,7 +45,7 @@ export default function makeUserModel(): UserModel {
         avatar: user.avatar,
       };
     },
-    findById: async userId => {
+    findById: async (userId): Promise<Required<UserData> | null> => {
       const user = await User.findById(userId);
       if (!user) return null;
 
@@ -56,7 +57,7 @@ export default function makeUserModel(): UserModel {
         avatar: user.avatar,
       };
     },
-    save: async ({ name, email, password, avatar }) => {
+    save: async ({ name, email, password, avatar }): Promise<Required<UserData>> => {
       const user = await User.create({ name, email, password, avatar });
 
       return {
