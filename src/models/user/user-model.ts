@@ -2,9 +2,14 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { UserModel } from '../../app/use-cases/users';
 import { BoardDocument } from '../board/board-model';
 
+const columnSchema = new Schema({
+  name: String,
+});
+
 const boardSchema = new Schema({
   name: String,
   invitedUsersIds: [Schema.Types.ObjectId],
+  columns: [columnSchema],
 });
 
 const userSchema = new Schema({

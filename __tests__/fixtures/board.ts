@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { BoardData } from '../../src/entities/board';
+import { BoardData } from '../../src/app/entities/board';
 
 export const getFakeBoardData = (): BoardData => ({
   id: faker.random.alphaNumeric(10),

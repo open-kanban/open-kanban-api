@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack --watch",
-    "server": "nodemon -r source-map-support/register dist/bundle.js"
+    "server": "nodemon -r source-map-support/register dist/bundle.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",

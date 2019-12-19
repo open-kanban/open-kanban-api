@@ -1,12 +1,14 @@
-import { Document, Schema } from 'mongoose';
+import { Document, Schema, Types } from 'mongoose';
 import { BoardData } from '../../app/entities/board';
 import { BoardModel } from '../../app/use-cases/boards';
 import { User, UserDocument } from '../user/user-model';
 import { ObjectID } from 'mongodb';
+import { ColumnDocument } from '../column/column-model';
 
 export interface BoardDocument extends Document {
   name: string;
   invitedUsersIds: UserDocument['_id'][];
+  columns: Types.DocumentArray<ColumnDocument>;
 }
 
 export default function makeBoardModel(): BoardModel {

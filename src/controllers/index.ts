@@ -1,3 +1,5 @@
+import columnsController from './columns';
+
 export type Controller = (httpRequest: HttpRequest) => Promise<HttpResponse>;
 
 export type HttpRequest = {
@@ -20,3 +22,9 @@ export type HttpResponse = {
   headers?: Record<string, any>;
   body?: Record<string, any>;
 };
+
+const controllers = {
+  columns: columnsController,
+};
+
+export default controllers;
