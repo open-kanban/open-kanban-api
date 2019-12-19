@@ -1,7 +1,11 @@
 import createBoard from '../../app/use-cases/boards/create-board';
 import listBoards from '../../app/use-cases/boards/list-boards';
-import makeGetBoards from './get-boards-controller';
-import makePostBoards from './post-boards-controller';
+import makeBoardsGetController from './boards-get-controller';
+import makeBoardsPostController from './boards-post-controller';
 
-export const getBoards = makeGetBoards({ listBoards });
-export const postBoards = makePostBoards({ createBoard });
+const boardsController = {
+  get: makeBoardsGetController({ listBoards }),
+  post: makeBoardsPostController({ createBoard }),
+};
+
+export default boardsController;

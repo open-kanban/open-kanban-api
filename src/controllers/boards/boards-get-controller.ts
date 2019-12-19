@@ -1,12 +1,12 @@
 import { HttpRequest, HttpResponse } from '..';
 import { ListBoards } from '../../app/use-cases/boards/list-boards';
 
-export type GetBoardsControllerDependencies = {
+export type BoardsGetControllerDependencies = {
   listBoards: ListBoards;
 };
 
-export default function makeGetBoards({ listBoards }: GetBoardsControllerDependencies) {
-  return async function getBoards({ query, params, authData }: HttpRequest): Promise<HttpResponse> {
+export default function makeBoardsGetController({ listBoards }: BoardsGetControllerDependencies) {
+  return async function boardsGetController({ query, params, authData }: HttpRequest): Promise<HttpResponse> {
     const { userId } = params;
     if (userId !== authData.userId) {
       return { statusCode: 403, body: { error: 'Not authorized' } };

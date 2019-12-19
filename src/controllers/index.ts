@@ -1,4 +1,7 @@
+import boardsController from './boards';
 import columnsController from './columns';
+import loginController from './login';
+import usersController from './users';
 
 export type Controller = (httpRequest: HttpRequest) => Promise<HttpResponse>;
 
@@ -25,6 +28,9 @@ export type HttpResponse = {
 
 const controllers = {
   columns: columnsController,
+  boards: boardsController,
+  login: loginController,
+  users: usersController,
 };
 
 export default controllers;

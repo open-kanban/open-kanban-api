@@ -1,12 +1,15 @@
 import { HttpRequest, HttpResponse } from '..';
 import { ShowUser } from '../../app/use-cases/users/show-user';
 
-export type GetUserControllerDependencies = {
+export type UsersGetControllerDependencies = {
   showUser: ShowUser;
 };
 
-export default function makeGetUser({ showUser }: GetUserControllerDependencies) {
-  return async function getUser({ params, authData }: HttpRequest): Promise<HttpResponse> {
+export default function makeUsersGetController({ showUser }: UsersGetControllerDependencies) {
+  return async function usersGetController({
+    params,
+    authData,
+  }: HttpRequest): Promise<HttpResponse> {
     const { userId } = params;
     if (authData.userId !== userId) {
       return {

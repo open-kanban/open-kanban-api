@@ -1,15 +1,15 @@
-import { Controller } from '..';
+import { Controller, HttpResponse } from '..';
 import { BoardData } from '../../app/entities/board';
 import { CreateBoard } from '../../app/use-cases/boards/create-board';
 
-export type PostBoardsControllerDependencies = {
+export type BoardsPostControllerDependencies = {
   createBoard: CreateBoard;
 };
 
-export default function makePostBoards({
+export default function makeBoardsPostController({
   createBoard,
-}: PostBoardsControllerDependencies): Controller {
-  return async function postBoards({ body, params, authData }) {
+}: BoardsPostControllerDependencies): Controller {
+  return async function boardsPostController({ body, params, authData }): Promise<HttpResponse> {
     const { userId } = params;
     if (userId !== authData.userId)
       return {

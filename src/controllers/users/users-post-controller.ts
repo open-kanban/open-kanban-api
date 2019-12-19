@@ -1,15 +1,15 @@
-import { Controller } from '..';
+import { Controller, HttpResponse } from '..';
 import { UserData } from '../../app/entities/user';
 import { CreateAccount } from '../../app/use-cases/users/create-account';
 
-export type PostUsersControllerDependencies = {
+export type UsersPostControllerDependencies = {
   createAccount: CreateAccount;
 };
 
-export default function makePostUsers({
+export default function makeUsersPostController({
   createAccount,
-}: PostUsersControllerDependencies): Controller {
-  return async function postUsers({ body }) {
+}: UsersPostControllerDependencies): Controller {
+  return async function usersPostController({ body }): Promise<HttpResponse> {
     const userData = body as UserData;
 
     try {

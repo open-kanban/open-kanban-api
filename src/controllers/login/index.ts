@@ -1,4 +1,8 @@
 import loginWithCredentials from '../../app/use-cases/users/login-with-credentials';
-import makePostLogin from './post-login-controller';
+import makeLoginPostController from './login-post-controller';
 
-export const postLogin = makePostLogin({ loginWithCredentials });
+const loginController = {
+  post: makeLoginPostController({ loginWithCredentials }),
+};
+
+export default loginController;

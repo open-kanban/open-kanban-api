@@ -1,15 +1,15 @@
 import jwt from 'jsonwebtoken';
-import { Controller } from '..';
+import { Controller, HttpResponse } from '..';
 import { LoginWithCredentials } from '../../app/use-cases/users/login-with-credentials';
 
-export type PostLoginControllerDependencies = {
+export type LoginPostControllerDependencies = {
   loginWithCredentials: LoginWithCredentials;
 };
 
-export default function makePostLogin({
+export default function makeLoginPostController({
   loginWithCredentials,
-}: PostLoginControllerDependencies): Controller {
-  return async function postLogin({ body }) {
+}: LoginPostControllerDependencies): Controller {
+  return async function loginPostController({ body }): Promise<HttpResponse> {
     const { email, password } = body;
 
     if (!email || !password)
