@@ -19,5 +19,6 @@ app.post(
   withAuthentication,
   makeExpressCallback(controllers.columns.post)
 );
+app.post('/cards', withAuthentication, makeExpressCallback(controllers.cards.post));
 
 export default app;

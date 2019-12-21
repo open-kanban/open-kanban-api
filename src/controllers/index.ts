@@ -1,4 +1,5 @@
 import boardsController from './boards';
+import cardsController from './cards';
 import columnsController from './columns';
 import loginController from './login';
 import usersController from './users';
@@ -27,6 +28,7 @@ export type HttpResponse = {
 };
 
 const controllers = {
+  cards: cardsController,
   columns: columnsController,
   boards: boardsController,
   login: loginController,
