@@ -1,7 +1,9 @@
+import { BoardData } from '../board';
+
 export type UserFactoryDependencies = {
   generateId: () => string;
   isValidEmail: (email: string) => boolean;
-  hashValue: (value: any) => Promise<string>;
+  hashValue: (value: string) => Promise<string>;
 };
 
 export type UserFactory = (userData: UserData) => Promise<User>;
@@ -12,6 +14,7 @@ export type UserData = {
   readonly email: string;
   readonly password: string;
   readonly avatar?: string | null;
+  readonly boards?: BoardData[];
 };
 
 export type User = {
@@ -30,7 +33,13 @@ export default function buildMakeUser({
   isValidEmail,
   hashValue,
 }: UserFactoryDependencies): UserFactory {
-  return async function makeUser({ id = generateId(), name, email, password, avatar = null }) {
+  return async function makeUser({
+    id = generateId(),
+    name,
+    email,
+    password,
+    avatar = null,
+  }): Promise<User> {
     if (!name) throw new Error('Name must be provided');
     if (name.trim().length < 3) throw new Error('Name must have at least 3 characters');
     if (!isValidEmail(email)) throw new Error('Email must be a valid email');
@@ -40,12 +49,12 @@ export default function buildMakeUser({
     const hashedPassword = await hashValue(password);
 
     return {
-      getId: () => id,
-      getName: () => name,
-      getEmail: () => email,
-      getPassword: () => hashedPassword,
-      getAvatar: () => avatar,
-      getSessionExpirationTime: () => THREE_DAYS,
+      getId: (): string => id,
+      getName: (): string => name,
+      getEmail: (): string => email,
+      getPassword: (): string => hashedPassword,
+      getAvatar: (): string | null => avatar,
+      getSessionExpirationTime: (): number => THREE_DAYS,
     };
   };
 }

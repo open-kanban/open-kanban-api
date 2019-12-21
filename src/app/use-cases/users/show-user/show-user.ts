@@ -8,7 +8,7 @@ export type ShowUserDependencies = {
 export type ShowUser = (userId: string) => Promise<Required<UserData>>;
 
 export default function makeShowUser({ userModel }: ShowUserDependencies): ShowUser {
-  return async function showUser(userId) {
+  return async function showUser(userId): Promise<Required<UserData>> {
     if (!userId) throw new Error('User not found');
 
     const userData = await userModel.findById(userId);

@@ -37,36 +37,37 @@ export default function makeUserModel(): UserModel {
       const user = await User.findOne({ email });
       if (!user) return null;
 
-      return {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        avatar: user.avatar,
-      };
+      return parseUserDocumentToUserData(user);
     },
     findById: async (userId): Promise<Required<UserData> | null> => {
       const user = await User.findById(userId);
       if (!user) return null;
 
-      return {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        avatar: user.avatar,
-      };
+      return parseUserDocumentToUserData(user);
     },
     save: async ({ name, email, password, avatar }): Promise<Required<UserData>> => {
       const user = await User.create({ name, email, password, avatar });
 
-      return {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        avatar: user.avatar,
-      };
+      return parseUserDocumentToUserData(user);
     },
   };
 }
+
+const parseUserDocumentToUserData = (userDocument: UserDocument): Required<UserData> => ({
+  id: userDocument._id,
+  name: userDocument.name,
+  email: userDocument.email,
+  password: userDocument.password,
+  avatar: userDocument.avatar,
+  boards: userDocument.boards.map(boardDocument => ({
+    id: boardDocument._id,
+    userId: userDocument._id,
+    name: boardDocument.name,
+    invitedUsersIds: boardDocument.invitedUsersIds,
+    columns: boardDocument.columns.map(columnDocument => ({
+      id: columnDocument._id,
+      boardId: boardDocument._id,
+      name: columnDocument.name,
+    })),
+  })),
+});
