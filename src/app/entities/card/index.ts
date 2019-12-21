@@ -1,3 +1,8 @@
+import cuid from 'cuid';
 import buildMakeCard from './card';
-export { Card, CardData, CardFactory } from './card';
-export default buildMakeCard();
+
+const makeCard = buildMakeCard({ generateId: cuid });
+
+export default makeCard;
+export * from './card';
+

@@ -14,8 +14,5 @@ export const makeFakeColumn = () => ({
 });
 
 export const getColumnModelMock = () => ({
-  // get: jest.fn(),
-  // count: jest.fn(),
-  // findById: jest.fn(),
   save: jest.fn(),
 });
