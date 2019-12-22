@@ -33,6 +33,12 @@ const controllers = {
   boards: boardsController,
   login: loginController,
   users: usersController,
+  notFound: async (): Promise<HttpResponse> => ({
+    statusCode: 404,
+    body: {
+      error: 'Resource not found',
+    },
+  }),
 };
 
 export default controllers;

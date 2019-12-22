@@ -21,5 +21,6 @@ app.post(
 );
 app.post('/cards', withAuthentication, makeExpressCallback(controllers.cards.post));
 app.patch('/cards/:cardId', withAuthentication, makeExpressCallback(controllers.cards.patch));
+app.use(makeExpressCallback(controllers.notFound));
 
 export default app;
