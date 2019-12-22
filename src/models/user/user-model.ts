@@ -9,7 +9,7 @@ const columnSchema = new Schema({
 
 const boardSchema = new Schema({
   name: String,
-  invitedUsersIds: [Schema.Types.ObjectId],
+  invitedUsersIds: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   columns: [columnSchema],
 });
 
@@ -49,6 +49,29 @@ export default function makeUserModel(): UserModel {
       const user = await User.create({ name, email, password, avatar });
 
       return parseUserDocumentToUserData(user);
+    },
+    isAuthorizedToModifyColumn: async (userId, columnId): Promise<boolean> => {
+      const entries = await User.aggregate()
+        .unwind('$boards', '$boards.invitedUsersIds')
+        .match({
+          $or: [
+            { 'boards.invitedUsersIds': Types.ObjectId(userId) },
+            { _id: Types.ObjectId(userId) },
+          ],
+          'boards.columns._id': Types.ObjectId(columnId),
+        })
+        .lookup({
+          from: 'users',
+          localField: 'boards.invitedUsersIds',
+          foreignField: '_id',
+          as: 'invitedUser',
+        })
+        .unwind('$invitedUser')
+        .project('-_id invitedUser');
+
+      if (entries.length === 0) return false;
+
+      return true;
     },
   };
 }

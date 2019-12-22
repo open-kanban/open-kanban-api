@@ -9,11 +9,12 @@ export type PostCardsControllerDependencies = {
 export default function makeCardsPostController({
   createCard,
 }: PostCardsControllerDependencies): Controller {
-  return async function cardsPostController({ body }): Promise<HttpResponse> {
+  return async function cardsPostController({ body, authData }): Promise<HttpResponse> {
     const cardData = body as CardData;
+    const { userId } = authData;
 
     try {
-      const card = await createCard(cardData);
+      const card = await createCard({ userId, ...cardData });
       return {
         statusCode: 201,
         body: { card },

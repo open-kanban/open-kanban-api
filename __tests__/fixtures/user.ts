@@ -22,4 +22,5 @@ export const getUserModelMock = () => ({
   findByEmail: jest.fn(),
   findById: jest.fn(),
   save: jest.fn(),
+  isAuthorizedToModifyColumn: jest.fn(),
 });
