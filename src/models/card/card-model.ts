@@ -32,5 +32,24 @@ export default function makeCardModel(): CardModel {
         description: card.description,
       };
     },
+    update: async function update(cardId, cardData): Promise<Required<CardData>> {
+      const cardDocument = await Card.findById(cardId);
+      if (!cardDocument) throw new Error('Card not found');
+
+      if (cardData.columnId) cardDocument.columnId = cardData.columnId;
+      if (cardData.name) cardDocument.name = cardData.name;
+      if (cardData.description) cardDocument.description = cardData.description;
+
+      const savedCardDocument = await cardDocument.save();
+
+      return {
+        id: savedCardDocument._id,
+        columnId: savedCardDocument.columnId,
+        name: savedCardDocument.name,
+        description: savedCardDocument.description,
+      };
+    },
+    // delete: () => null,
+    // findById: () => null,
   };
 }

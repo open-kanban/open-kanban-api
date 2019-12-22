@@ -16,5 +16,8 @@ export const makeFakeCard = () => ({
 });
 
 export const getCardModelMock = () => ({
+  findById: jest.fn(),
+  update: jest.fn(),
   save: jest.fn(),
+  delete: jest.fn(),
 });
