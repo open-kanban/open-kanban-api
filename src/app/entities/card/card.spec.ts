@@ -99,4 +99,30 @@ describe('Card factory', () => {
       expect(card.getDescription()).toEqual(validCardData.description);
     });
   });
+
+  describe('authorization', () => {
+    describe('canBeCreatedByUser()', () => {
+      it('resolves to true if given user is included in the column board members', async () => {
+        cardFactoryDependencies.columnRepository.getBoardMembers.mockResolvedValue([
+          'user1',
+          'user2',
+          'user3',
+        ]);
+        const card = await makeCard();
+        await card.setColumnId('columnId');
+        await expect(card.canBeCreatedByUser('user2')).resolves.toEqual(true);
+        expect(cardFactoryDependencies.columnRepository.getBoardMembers).toBeCalledWith('columnId');
+      });
+
+      it('resolves to false if given user is not included in the column board members', async () => {
+        cardFactoryDependencies.columnRepository.getBoardMembers.mockResolvedValue([
+          'user1',
+          'user2',
+        ]);
+        const card = await makeCard();
+        await card.setColumnId('columnId');
+        await expect(card.canBeCreatedByUser('user4')).resolves.toEqual(false);
+      });
+    });
+  });
 });

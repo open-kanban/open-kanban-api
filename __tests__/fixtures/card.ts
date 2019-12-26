@@ -9,9 +9,13 @@ export const getFakeCardData = (): CardData => ({
 });
 
 export const makeFakeCard = () => ({
+  setColumnId: jest.fn(),
+  setName: jest.fn(),
+  setDescription: jest.fn(),
   getColumnId: jest.fn(),
   getName: jest.fn(),
   getDescription: jest.fn(),
+  canBeCreatedByUser: jest.fn(),
 });
 
 export const getCardRepositoryMock = () => ({

@@ -17,4 +17,5 @@ export const makeFakeColumn = () => ({
 export const getColumnRepositoryMock = () => ({
   findById: jest.fn(),
   save: jest.fn(),
+  getBoardMembers: jest.fn(),
 });

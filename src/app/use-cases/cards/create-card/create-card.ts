@@ -1,36 +1,41 @@
-import { CardModel } from '..';
-import { CardData, CardFactory } from '../../../entities/card';
-import { UserModel } from '../../users';
+import { CardData, CardFactory, CardRepository } from '../../../entities/card';
+import { Authentication } from '../../users/authentication';
 
 export type CreateCardDependencies = {
   makeCard: CardFactory;
-  cardModel: CardModel;
-  userModel: UserModel;
+  cardRepository: CardRepository;
 };
 
-export type CreateCard = (cardData: CardData & { userId: string }) => Promise<Required<CardData>>;
+export type CreateCard = (cardData: {
+  authentication: Authentication;
+  columnId: string;
+  name: string;
+  description: string;
+}) => Promise<Required<CardData>>;
 
 export default function makeCreateCard({
   makeCard,
-  cardModel,
-  userModel,
+  cardRepository,
 }: CreateCardDependencies): CreateCard {
   return async function createCard({
-    userId,
+    authentication,
     columnId,
     name,
     description,
-  }): Promise<Required<CardData>> {
-    const isAuthorized = await userModel.isAuthorizedToModifyColumn(userId, columnId);
-    if (!isAuthorized) throw new Error('User is not authorized to modify column');
+  }): Promise<CardData> {
+    const userId = authentication.authenticate();
+    const card = await makeCard();
+    card.setColumnId(columnId);
+    card.setName(name);
+    card.setDescription(description);
 
-    const card = makeCard({ columnId, name, description });
-    const savedCardData = await cardModel.save({
+    const isAuthorized = await card.canBeCreatedByUser(userId);
+    if (!isAuthorized) throw new Error('Not authorized');
+
+    return await cardRepository.save({
       columnId: card.getColumnId(),
       name: card.getName(),
       description: card.getDescription(),
     });
-
-    return savedCardData;
   };
 }

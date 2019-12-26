@@ -15,6 +15,7 @@ export default function makeWithAuthentication(): RequestHandler {
         forbidRequest(res);
         return;
       }
+      res.locals.jwt = token;
 
       const verifiedToken = jwt.verify(token, 'secret') as Record<string, string>;
       res.locals.userId = verifiedToken.userId;

@@ -1,52 +1,64 @@
 import {
-  getCardModelMock,
+  getCardRepositoryMock,
   getFakeCardData,
   makeFakeCard,
 } from '../../../../../__tests__/fixtures/card';
-import { getUserModelMock } from '../../../../../__tests__/fixtures/user';
+import makeJWTAuthentication from '../../users/authentication/jwt-authentication';
 import makeCreateCard, { CreateCard } from './create-card';
 
 describe('Create card', () => {
+  const authenticationMock = { authenticate: jest.fn() };
   const validCardData = getFakeCardData();
   const fakeCard = makeFakeCard();
+  const rawCardData = {
+    columnId: 'c',
+    name: 'n',
+    description: 'd',
+  };
   let createCard: CreateCard;
   const createCardDependencies = {
     makeCard: jest.fn(),
-    cardModel: getCardModelMock(),
-    userModel: getUserModelMock(),
+    cardRepository: getCardRepositoryMock(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     createCard = makeCreateCard(createCardDependencies);
+
     createCardDependencies.makeCard.mockReturnValue(fakeCard);
-    createCardDependencies.cardModel.save.mockResolvedValue(validCardData);
-    createCardDependencies.userModel.isAuthorizedToModifyColumn.mockResolvedValue(true);
+    createCardDependencies.cardRepository.save.mockResolvedValue(validCardData);
+    fakeCard.canBeCreatedByUser.mockResolvedValue(true);
+    authenticationMock.authenticate.mockReturnValue('userId');
   });
 
-  it('throws if user is not authorized to create the card in the given column', async () => {
-    createCardDependencies.userModel.isAuthorizedToModifyColumn.mockResolvedValue(false);
-    await expect(createCard({ userId: 'userId', ...validCardData })).rejects.toThrow(
-      'User is not authorized to modify column'
-    );
-    expect(createCardDependencies.userModel.isAuthorizedToModifyColumn).toBeCalledWith(
-      'userId',
-      validCardData.columnId
-    );
+  it('authenticates the user with the given authentication', async () => {
+    await createCard({ authentication: authenticationMock, ...rawCardData });
+    expect(authenticationMock.authenticate).toBeCalledTimes(1);
   });
 
-  it('creates a card entity with the given data', async () => {
-    await createCard({ userId: 'userId', ...validCardData });
-    expect(createCardDependencies.makeCard).toBeCalledWith({
-      columnId: validCardData.columnId,
-      name: validCardData.name,
-      description: validCardData.description,
-    });
+  it('creates a card entity and sets the given data', async () => {
+    await createCard({ authentication: authenticationMock, ...rawCardData });
+    expect(createCardDependencies.makeCard).toBeCalledWith();
+    expect(fakeCard.setColumnId).toBeCalledWith(rawCardData.columnId);
+    expect(fakeCard.setName).toBeCalledWith(rawCardData.name);
+    expect(fakeCard.setDescription).toBeCalledWith(rawCardData.description);
+  });
+
+  it('checks if authenticated user is authorized to create the card', async () => {
+    await createCard({ authentication: authenticationMock, ...rawCardData });
+    expect(fakeCard.canBeCreatedByUser).toBeCalledWith('userId');
+  });
+
+  it('throws if user is not authorized to create the card', async () => {
+    fakeCard.canBeCreatedByUser.mockResolvedValue(false);
+    const result = createCard({ authentication: authenticationMock, ...rawCardData });
+    await expect(result).rejects.toThrow('Not authorized');
   });
 
   it('saves the created card', async () => {
-    await createCard({ userId: 'userId', ...validCardData });
-    expect(createCardDependencies.cardModel.save).toBeCalledWith({
+    await createCard({ authentication: authenticationMock, ...rawCardData });
+    expect(createCardDependencies.cardRepository.save).toBeCalledWith({
       columnId: fakeCard.getColumnId(),
       name: fakeCard.getName(),
       description: fakeCard.getDescription(),
@@ -54,7 +66,7 @@ describe('Create card', () => {
   });
 
   it('resolves with the saved card data', async () => {
-    const result = createCard({ userId: 'userId', ...validCardData });
+    const result = createCard({ authentication: authenticationMock, ...rawCardData });
     await expect(result).resolves.toEqual({
       id: validCardData.id,
       columnId: validCardData.columnId,

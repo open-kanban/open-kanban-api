@@ -23,6 +23,7 @@ export type ColumnRepository = {
     name: string;
     boardId: string;
   }) => Promise<ColumnData>;
+  readonly getBoardMembers: (columnId: string) => Promise<string[]>;
 };
 
 export default function buildMakeColumn({

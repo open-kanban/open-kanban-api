@@ -37,5 +37,18 @@ export default function makeColumnRepository(): ColumnRepository {
 
       return { id: column.id, boardId: column.boardId, name: column.name };
     },
+    async getBoardMembers(columnId: string): Promise<string[]> {
+      const results = await User.aggregate()
+        .unwind('boards', 'boards.columns')
+        .match({ 'boards.columns._id': columnId })
+        .project({ foundBoard: 'boards' });
+
+      if (!results.length) return [];
+      const user = results[0];
+      const members = user.foundBoard.invitedUsersIds;
+      members.push(user._id);
+
+      return members;
+    },
   };
 }
