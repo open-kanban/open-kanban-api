@@ -1,30 +1,60 @@
 export type ColumnFactoryDependencies = {
-  generateId: () => string;
+  columnRepository: ColumnRepository;
 };
 
-export type ColumnFactory = (columnData: ColumnData) => Column;
+export type ColumnFactory = (columnId?: string) => Promise<Column>;
 
 export type ColumnData = {
-  readonly id?: string;
-  readonly boardId: string;
-  readonly name: string;
+  id: string;
+  boardId: string;
+  name: string;
 };
 
 export type Column = {
-  readonly getId: () => string;
-  readonly getBoardId: () => string;
+  readonly setName: (newName: string) => void;
+  readonly setBoardId: (newBoardId: string) => void;
   readonly getName: () => string;
+  readonly getBoardId: () => string;
 };
 
-export default function buildMakeColumn({ generateId }: ColumnFactoryDependencies): ColumnFactory {
-  return function makeColumn({ id = generateId(), boardId, name }): Column {
-    if (!boardId) throw new Error('Board ID must be provided');
-    if (!name) throw new Error('Name must be provided');
+export type ColumnRepository = {
+  readonly findById: (columnId: string) => Promise<ColumnData | null>;
+  readonly save: (columnData: {
+    name: string;
+    boardId: string;
+  }) => Promise<ColumnData>;
+};
+
+export default function buildMakeColumn({
+  columnRepository,
+}: ColumnFactoryDependencies): ColumnFactory {
+  return async function makeColumn(columnId?: string): Promise<Column> {
+    let columnName: string;
+    let columnBoardId: string;
+
+    if (columnId) {
+      const column = await columnRepository.findById(columnId);
+      if (!column) throw new Error('Column not found');
+
+      columnName = column.name;
+      columnBoardId = column.boardId;
+    }
 
     return {
-      getId: () => id,
-      getBoardId: () => boardId,
-      getName: () => name,
+      setName(newName): void {
+        if (!newName) throw new Error('Name must be provided');
+
+        columnName = newName;
+      },
+      setBoardId(newBoardId): void {
+        columnBoardId = newBoardId;
+      },
+      getBoardId(): string {
+        return columnBoardId;
+      },
+      getName(): string {
+        return columnName;
+      },
     };
   };
 }

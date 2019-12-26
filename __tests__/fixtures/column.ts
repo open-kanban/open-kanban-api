@@ -13,6 +13,7 @@ export const makeFakeColumn = () => ({
   getName: jest.fn(),
 });
 
-export const getColumnModelMock = () => ({
+export const getColumnRepositoryMock = () => ({
+  findById: jest.fn(),
   save: jest.fn(),
 });

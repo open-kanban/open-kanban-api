@@ -1,8 +1,7 @@
-import cuid from 'cuid';
+import { columnRepository } from '../../../repositories';
 import buildMakeColumn from './column';
 
-const makeColumn = buildMakeColumn({ generateId: cuid });
+const makeColumn = buildMakeColumn({ columnRepository });
 
 export default makeColumn;
 export * from './column';
-

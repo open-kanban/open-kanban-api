@@ -1,41 +1,62 @@
-import { getFakeColumnData } from '../../../../__tests__/fixtures/column';
+import { getColumnRepositoryMock, getFakeColumnData } from '../../../../__tests__/fixtures/column';
 import buildMakeColumn, { ColumnFactory } from './column';
 
 describe('Column factory', () => {
   const validColumnData = getFakeColumnData();
   const columnFactoryDependencies = {
-    generateId: jest.fn(),
+    columnRepository: getColumnRepositoryMock(),
   };
   let makeColumn: ColumnFactory;
 
   beforeEach(() => {
-    columnFactoryDependencies.generateId.mockReturnValue('123');
     makeColumn = buildMakeColumn(columnFactoryDependencies);
+    columnFactoryDependencies.columnRepository.findById.mockResolvedValue(null);
   });
 
-  it('throws if board id is not provided', () => {
-    expect(() => makeColumn({ ...validColumnData, boardId: undefined })).toThrow(
-      'Board ID must be provided'
-    );
+  describe('data validation', () => {
+    it('throws if name id is empty', async () => {
+      const column = await makeColumn();
+      expect(() => column.setName('')).toThrow('Name must be provided');
+    });
   });
 
-  it('throws if name is not provided', () => {
-    expect(() => makeColumn({ ...validColumnData, name: undefined })).toThrow('Name must be provided');
+  describe('data retrieval', () => {
+    it('has the given name', async () => {
+      const validColumn = await makeColumn();
+      validColumn.setName('name');
+      expect(validColumn.getName()).toEqual('name');
+    });
+
+    it('has the given board ID', async () => {
+      const validColumn = await makeColumn();
+      validColumn.setBoardId('boardId');
+      expect(validColumn.getBoardId()).toEqual('boardId');
+    });
   });
 
-  it('generates an id', () => {
-    columnFactoryDependencies.generateId.mockReturnValue('RandomID');
-    const validColumn = makeColumn({ ...validColumnData, id: undefined });
-    expect(validColumn.getId()).toEqual('RandomID');
-  });
+  describe('data retrieval when column ID is provided', () => {
+    beforeEach(() => {
+      columnFactoryDependencies.columnRepository.findById.mockResolvedValue(validColumnData);
+    });
 
-  it('has the given id', () => {
-    const validColumn = makeColumn({ ...validColumnData, id: '123' });
-    expect(validColumn.getId()).toEqual('123');
-  });
+    it('finds the column data', async () => {
+      await makeColumn('columnId');
+      expect(columnFactoryDependencies.columnRepository.findById).toBeCalledWith('columnId');
+    });
 
-  it('has the given name', () => {
-    const validColumn = makeColumn({ ...validColumnData, name: 'name' });
-    expect(validColumn.getName()).toEqual('name');
+    it('rejects if column was not found', async () => {
+      columnFactoryDependencies.columnRepository.findById.mockResolvedValue(null);
+      await expect(makeColumn('columnId')).rejects.toThrow('Column not found');
+    });
+
+    it('populates the column name from the found column', async () => {
+      const column = await makeColumn('columnId');
+      expect(column.getName()).toEqual(validColumnData.name);
+    });
+
+    it('populates the column board ID from the found column', async () => {
+      const column = await makeColumn('columnId');
+      expect(column.getBoardId()).toEqual(validColumnData.boardId);
+    });
   });
 });
