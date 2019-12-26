@@ -1,53 +1,102 @@
-import { getFakeCardData } from '../../../../__tests__/fixtures/card';
-import buildMakeCard, { CardFactory } from './card';
+import { getCardRepositoryMock, getFakeCardData } from '../../../../__tests__/fixtures/card';
+import { getColumnRepositoryMock, getFakeColumnData } from '../../../../__tests__/fixtures/column';
+import buildMakeCard, { Card, CardFactory } from './card';
 
 describe('Card factory', () => {
   const cardFactoryDependencies = {
-    generateId: jest.fn(),
+    cardRepository: getCardRepositoryMock(),
+    columnRepository: getColumnRepositoryMock(),
   };
+  const validColumnData = getFakeColumnData();
   const validCardData = getFakeCardData();
   let makeCard: CardFactory;
 
   beforeEach(() => {
-    cardFactoryDependencies.generateId.mockReturnValue('123');
+    cardFactoryDependencies.columnRepository.findById.mockResolvedValue(validColumnData);
+    cardFactoryDependencies.cardRepository.findById.mockResolvedValue(null);
     makeCard = buildMakeCard(cardFactoryDependencies);
   });
 
-  it('generates an id', () => {
-    cardFactoryDependencies.generateId.mockReturnValue('mockId');
-    const validCard = makeCard({ ...validCardData, id: undefined });
-    expect(validCard.getId()).toEqual('mockId');
+  describe('data validation', () => {
+    let card: Card;
+
+    beforeEach(async () => {
+      card = await makeCard();
+    });
+
+    it('throws if column ID is not provided', async () => {
+      await expect(card.setColumnId('')).rejects.toThrow('Card column ID must be provided');
+    });
+
+    it('throws if given column does not exist', async () => {
+      cardFactoryDependencies.columnRepository.findById.mockResolvedValue(null);
+      await expect(card.setColumnId('columnId')).rejects.toThrow('Column does not exist');
+      expect(cardFactoryDependencies.columnRepository.findById).toBeCalledWith('columnId');
+    });
+
+    it('does not check if column exists if given column ID is the same as current one', async () => {
+      await card.setColumnId('columnId');
+      jest.clearAllMocks();
+      await card.setColumnId('columnId');
+      expect(cardFactoryDependencies.columnRepository.findById).not.toBeCalled();
+    });
+
+    it('throws if name is not provided', async () => {
+      expect(() => card.setName('')).toThrow('Card name must be provided');
+    });
   });
 
-  it('throws if column id is not provided', () => {
-    expect(() => makeCard({ ...validCardData, columnId: undefined })).toThrow(
-      'Card column ID must be provided'
-    );
+  describe('data retrieval', () => {
+    let card: Card;
+
+    beforeEach(async () => {
+      card = await makeCard();
+    });
+
+    it('has the given column id', async () => {
+      await card.setColumnId('columnId');
+      expect(card.getColumnId()).toEqual('columnId');
+    });
+
+    it('has the given name', () => {
+      card.setName('name');
+      expect(card.getName()).toEqual('name');
+    });
+
+    it('has the given description', () => {
+      card.setDescription('description');
+      expect(card.getDescription()).toEqual('description');
+    });
   });
 
-  it('throws if name is not provided', () => {
-    expect(() => makeCard({ ...validCardData, name: undefined })).toThrow(
-      'Card name must be provided'
-    );
-  });
+  describe('data retrieval when a card ID is provided', () => {
+    beforeEach(async () => {
+      cardFactoryDependencies.cardRepository.findById.mockResolvedValue(validCardData);
+    });
 
-  it('has the given column id', () => {
-    const validCard = makeCard({ ...validCardData, columnId: 'columnId' });
-    expect(validCard.getColumnId()).toBe('columnId');
-  });
+    it('finds the card data', async () => {
+      await makeCard('cardId');
+      expect(cardFactoryDependencies.cardRepository.findById).toBeCalledWith('cardId');
+    });
 
-  it('has the given name', () => {
-    const validCard = makeCard({ ...validCardData, name: 'name' });
-    expect(validCard.getName()).toBe('name');
-  });
+    it('rejects if card was not found', async () => {
+      cardFactoryDependencies.cardRepository.findById.mockResolvedValue(null);
+      await expect(makeCard('cardId')).rejects.toThrow('Card not found');
+    });
 
-  it('has an empty description if one is not provided', () => {
-    const validCard = makeCard({ ...validCardData, description: undefined });
-    expect(validCard.getDescription()).toBe('');
-  });
+    it('populates the card column ID from the found card', async () => {
+      const card = await makeCard('cardId');
+      expect(card.getColumnId()).toEqual(validCardData.columnId);
+    });
 
-  it('has the given description', () => {
-    const validCard = makeCard({ ...validCardData, description: 'description' });
-    expect(validCard.getDescription()).toBe('description');
+    it('populates the card name from the found card', async () => {
+      const card = await makeCard('cardId');
+      expect(card.getName()).toEqual(validCardData.name);
+    });
+
+    it('populates the card description from the found card', async () => {
+      const card = await makeCard('cardId');
+      expect(card.getDescription()).toEqual(validCardData.description);
+    });
   });
 });

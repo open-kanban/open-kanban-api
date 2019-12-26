@@ -1,38 +1,89 @@
+import { ColumnRepository } from '../column';
+
 export type CardFactoryDependencies = {
-  generateId: () => string;
+  cardRepository: CardRepository;
+  columnRepository: ColumnRepository;
 };
 
-export type CardFactory = (cardData: CardData) => Card;
+export type CardFactory = (cardId?: string) => Promise<Card>;
 
 export type CardData = {
-  readonly id?: string;
-  readonly columnId: string;
-  readonly name: string;
-  readonly description: string;
+  id: string;
+  columnId: string;
+  name: string;
+  description: string;
 };
 
 export type Card = {
-  readonly getId: () => string;
+  readonly setColumnId: (newColumnId: string) => Promise<void>;
+  readonly setName: (newName: string) => void;
+  readonly setDescription: (newDescription: string) => void;
   readonly getColumnId: () => string;
   readonly getName: () => string;
   readonly getDescription: () => string;
 };
 
-export default function buildMakeCard({ generateId }: CardFactoryDependencies): CardFactory {
-  return function makeCard({
-    id = generateId(),
-    columnId,
-    name,
-    description = '',
-  }: CardData): Card {
-    if (!columnId) throw new Error('Card column ID must be provided');
-    if (!name) throw new Error('Card name must be provided');
+export type CardRepository = {
+  readonly findById: (cardId: string) => Promise<CardData | null>;
+  readonly update: (
+    cardId: string,
+    cardData: {
+      columnId: string;
+      name: string;
+      description: string;
+    }
+  ) => Promise<CardData>;
+  readonly save: (cardData: {
+    columnId: string;
+    name: string;
+    description: string;
+  }) => Promise<CardData>;
+};
+
+export default function buildMakeCard({
+  cardRepository,
+  columnRepository,
+}: CardFactoryDependencies): CardFactory {
+  return async function makeCard(cardId?: string): Promise<Card> {
+    let cardColumnId: string;
+    let cardName: string;
+    let cardDescription: string;
+
+    if (cardId) {
+      const card = await cardRepository.findById(cardId);
+      if (!card) throw new Error('Card not found');
+
+      cardColumnId = card.columnId;
+      cardName = card.name;
+      cardDescription = card.description;
+    }
 
     return {
-      getId: () => id,
-      getColumnId: () => columnId,
-      getName: () => name,
-      getDescription: () => description,
+      async setColumnId(newColumnId): Promise<void> {
+        if (newColumnId === cardColumnId) return;
+
+        if (!newColumnId) throw new Error('Card column ID must be provided');
+        const column = await columnRepository.findById(newColumnId);
+        if (!column) throw new Error('Column does not exist');
+
+        cardColumnId = newColumnId;
+      },
+      setName(newName): void {
+        if (!newName) throw new Error('Card name must be provided');
+        cardName = newName;
+      },
+      setDescription(newDescription): void {
+        cardDescription = newDescription;
+      },
+      getColumnId(): string {
+        return cardColumnId;
+      },
+      getName(): string {
+        return cardName;
+      },
+      getDescription(): string {
+        return cardDescription;
+      },
     };
   };
 }

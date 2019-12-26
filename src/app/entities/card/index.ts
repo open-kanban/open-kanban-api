@@ -1,8 +1,7 @@
-import cuid from 'cuid';
+import { cardRepository, columnRepository } from '../../../repositories';
 import buildMakeCard from './card';
 
-const makeCard = buildMakeCard({ generateId: cuid });
+const makeCard = buildMakeCard({ columnRepository, cardRepository });
 
-export default makeCard;
 export * from './card';
-
+export default makeCard;
