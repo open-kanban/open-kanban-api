@@ -1,11 +1,15 @@
-import { getFakeUserData, getUserModelMock, makeFakeUser } from '../../../../../__tests__/fixtures/user';
+import {
+  getFakeUserData,
+  getUserRepositoryMock,
+  makeFakeUser,
+} from '../../../../../__tests__/fixtures/user';
 import makeLoginWithCredentials, { LoginWithCredentials } from './login-with-credentials';
 
 describe('Login with credentials', () => {
   const fakeUserData = getFakeUserData();
   const fakeUser = makeFakeUser();
   const loginWithCredentialsDependencies = {
-    userModel: getUserModelMock(),
+    userRepository: getUserRepositoryMock(),
     compareValueToHash: jest.fn(),
     makeUser: jest.fn(),
   };
@@ -13,7 +17,7 @@ describe('Login with credentials', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    loginWithCredentialsDependencies.userModel.findByEmail.mockResolvedValue(fakeUserData);
+    loginWithCredentialsDependencies.userRepository.findByEmail.mockResolvedValue(fakeUserData);
     loginWithCredentialsDependencies.compareValueToHash.mockResolvedValue(true);
     loginWithCredentialsDependencies.makeUser.mockResolvedValue(fakeUser);
     loginWithCredentials = makeLoginWithCredentials(loginWithCredentialsDependencies);
@@ -21,11 +25,13 @@ describe('Login with credentials', () => {
 
   it('finds the user with the given email', async () => {
     await loginWithCredentials({ email: 'email', password: 'pass' });
-    expect(loginWithCredentialsDependencies.userModel.findByEmail).toHaveBeenCalledWith('email');
+    expect(loginWithCredentialsDependencies.userRepository.findByEmail).toHaveBeenCalledWith(
+      'email'
+    );
   });
 
   it('throws if user could not be retrieved', async () => {
-    loginWithCredentialsDependencies.userModel.findByEmail.mockResolvedValue(null);
+    loginWithCredentialsDependencies.userRepository.findByEmail.mockResolvedValue(null);
     const result = loginWithCredentials({ email: 'email', password: 'pass' });
     await expect(result).rejects.toThrow('Wrong credentials');
   });
@@ -44,14 +50,18 @@ describe('Login with credentials', () => {
     await expect(result).rejects.toThrow('Wrong credentials');
   });
 
+  it('creates a user entity with the retrieved user ID', async () => {
+    await loginWithCredentials({ email: 'email', password: 'pass' });
+    expect(loginWithCredentialsDependencies.makeUser).toBeCalledWith(fakeUserData.id);
+  });
+
   it('resolves with user id and session expiration time', async () => {
-    fakeUser.getId.mockReturnValue('valid id');
     fakeUser.getSessionExpirationTime.mockReturnValue('valid time');
 
     const result = loginWithCredentials({ email: 'email', password: 'pass' });
 
     await expect(result).resolves.toEqual({
-      userId: 'valid id',
+      userId: fakeUserData.id,
       sessionExpirationTime: 'valid time',
     });
   });
