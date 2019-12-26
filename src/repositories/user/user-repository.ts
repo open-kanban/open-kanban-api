@@ -1,6 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose';
 import { UserData, UserFullData, UserRepository } from '../../app/entities/user';
-import { BoardDocument } from '../../models/board/board-model';
+import { BoardDocument } from '../board/board-repository';
 
 const columnSchema = new Schema({
   name: String,
@@ -10,6 +10,7 @@ const boardSchema = new Schema({
   name: String,
   invitedUsersIds: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   columns: [columnSchema],
+  hash: String,
 });
 
 const userSchema = new Schema({
@@ -69,10 +70,15 @@ const parseUserDocumentToUserData = (userDocument: UserDocument): UserData => ({
 const parseUserDocumentToUserFullData = (userDocument: UserDocument): UserFullData => ({
   ...parseUserDocumentToUserData(userDocument),
   boards: userDocument.boards.map(boardDocument => ({
-    id: boardDocument.id,
+    id: boardDocument._id,
     userId: userDocument.id,
     invitedUsersIds: boardDocument.invitedUsersIds,
     name: boardDocument.name,
-    columns: boardDocument.columns,
+    hash: boardDocument.hash,
+    columns: boardDocument.columns.map(column => ({
+      id: column._id,
+      boardId: column.boardId,
+      name: column.name,
+    })),
   })),
 });
