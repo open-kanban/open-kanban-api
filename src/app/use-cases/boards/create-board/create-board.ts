@@ -1,25 +1,26 @@
-import { BoardModel } from '..';
-import { BoardData, BoardFactory } from '../../../entities/board';
+import { BoardData, BoardFactory, BoardRepository } from '../../../entities/board';
 
 export type CreateBoardDependencies = {
-  boardModel: BoardModel;
+  boardRepository: BoardRepository;
   makeBoard: BoardFactory;
 };
 
-export type CreateBoard = (boardData: BoardData) => Promise<BoardData>;
+export type CreateBoard = (boardData: { userId: string; name: string }) => Promise<BoardData>;
 
 export default function makeCreateBoard({
-  boardModel,
+  boardRepository,
   makeBoard,
 }: CreateBoardDependencies): CreateBoard {
-  return async function createBoard(boardData): Promise<BoardData> {
-    const board = makeBoard(boardData);
+  return async function createBoard({ name, userId }): Promise<BoardData> {
+    const board = await makeBoard();
+    board.setName(name);
+    board.setUserId(userId);
 
-    return boardModel.save({
-      id: board.getId(),
+    return boardRepository.save({
       userId: board.getUserId(),
       invitedUsersIds: board.getInvitedUsersIds(),
       name: board.getName(),
+      hash: board.getHash(),
     });
   };
 }

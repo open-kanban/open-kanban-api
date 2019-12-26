@@ -10,11 +10,9 @@ export const getFakeBoardData = (): BoardData => ({
 });
 
 export const makeFakeBoard = () => ({
-  setId: jest.fn(),
   setUserId: jest.fn(),
   setInvitedUsersIds: jest.fn(),
   setName: jest.fn(),
-  getId: jest.fn(),
   getUserId: jest.fn(),
   getInvitedUsersIds: jest.fn(),
   getName: jest.fn(),
