@@ -15,7 +15,7 @@ export const makeFakeCard = () => ({
   getColumnId: jest.fn(),
   getName: jest.fn(),
   getDescription: jest.fn(),
-  canBeCreatedByUser: jest.fn(),
+  canBeManipulatedByUser: jest.fn(),
 });
 
 export const getCardRepositoryMock = () => ({

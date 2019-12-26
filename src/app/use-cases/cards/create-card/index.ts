@@ -1,9 +1,8 @@
-import { cardModel, userModel } from '../../../../models';
+import { cardRepository } from '../../../../repositories';
 import makeCard from '../../../entities/card';
 import makeCreateCard from './create-card';
 
-const createCard = makeCreateCard({ cardModel, makeCard, userModel });
+const createCard = makeCreateCard({ cardRepository, makeCard });
 
-export default createCard;
 export * from './create-card';
-
+export default createCard;

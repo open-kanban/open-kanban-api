@@ -3,7 +3,6 @@ import {
   getFakeCardData,
   makeFakeCard,
 } from '../../../../../__tests__/fixtures/card';
-import makeJWTAuthentication from '../../users/authentication/jwt-authentication';
 import makeCreateCard, { CreateCard } from './create-card';
 
 describe('Create card', () => {
@@ -28,7 +27,7 @@ describe('Create card', () => {
 
     createCardDependencies.makeCard.mockReturnValue(fakeCard);
     createCardDependencies.cardRepository.save.mockResolvedValue(validCardData);
-    fakeCard.canBeCreatedByUser.mockResolvedValue(true);
+    fakeCard.canBeManipulatedByUser.mockResolvedValue(true);
     authenticationMock.authenticate.mockReturnValue('userId');
   });
 
@@ -47,11 +46,11 @@ describe('Create card', () => {
 
   it('checks if authenticated user is authorized to create the card', async () => {
     await createCard({ authentication: authenticationMock, ...rawCardData });
-    expect(fakeCard.canBeCreatedByUser).toBeCalledWith('userId');
+    expect(fakeCard.canBeManipulatedByUser).toBeCalledWith('userId');
   });
 
   it('throws if user is not authorized to create the card', async () => {
-    fakeCard.canBeCreatedByUser.mockResolvedValue(false);
+    fakeCard.canBeManipulatedByUser.mockResolvedValue(false);
     const result = createCard({ authentication: authenticationMock, ...rawCardData });
     await expect(result).rejects.toThrow('Not authorized');
   });

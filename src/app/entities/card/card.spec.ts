@@ -101,7 +101,7 @@ describe('Card factory', () => {
   });
 
   describe('authorization', () => {
-    describe('canBeCreatedByUser()', () => {
+    describe('canBeManipulatedByUser()', () => {
       it('resolves to true if given user is included in the column board members', async () => {
         cardFactoryDependencies.columnRepository.getBoardMembers.mockResolvedValue([
           'user1',
@@ -110,7 +110,7 @@ describe('Card factory', () => {
         ]);
         const card = await makeCard();
         await card.setColumnId('columnId');
-        await expect(card.canBeCreatedByUser('user2')).resolves.toEqual(true);
+        await expect(card.canBeManipulatedByUser('user2')).resolves.toEqual(true);
         expect(cardFactoryDependencies.columnRepository.getBoardMembers).toBeCalledWith('columnId');
       });
 
@@ -121,7 +121,7 @@ describe('Card factory', () => {
         ]);
         const card = await makeCard();
         await card.setColumnId('columnId');
-        await expect(card.canBeCreatedByUser('user4')).resolves.toEqual(false);
+        await expect(card.canBeManipulatedByUser('user4')).resolves.toEqual(false);
       });
     });
   });

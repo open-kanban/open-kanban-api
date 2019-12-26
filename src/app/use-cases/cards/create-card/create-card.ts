@@ -29,7 +29,7 @@ export default function makeCreateCard({
     card.setName(name);
     card.setDescription(description);
 
-    const isAuthorized = await card.canBeCreatedByUser(userId);
+    const isAuthorized = await card.canBeManipulatedByUser(userId);
     if (!isAuthorized) throw new Error('Not authorized');
 
     return await cardRepository.save({

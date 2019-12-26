@@ -21,7 +21,7 @@ export type Card = {
   readonly getColumnId: () => string;
   readonly getName: () => string;
   readonly getDescription: () => string;
-  readonly canBeCreatedByUser: (userId: string) => Promise<boolean>;
+  readonly canBeManipulatedByUser: (userId: string) => Promise<boolean>;
 };
 
 export type CardRepository = {
@@ -85,7 +85,7 @@ export default function buildMakeCard({
       getDescription(): string {
         return cardDescription;
       },
-      async canBeCreatedByUser(userId): Promise<boolean> {
+      async canBeManipulatedByUser(userId): Promise<boolean> {
         const boardMembers = await columnRepository.getBoardMembers(cardColumnId);
         if (!boardMembers.includes(userId)) return false;
 

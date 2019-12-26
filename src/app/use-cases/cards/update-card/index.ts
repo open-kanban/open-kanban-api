@@ -1,7 +1,8 @@
-import { cardModel } from '../../../../models';
+import { cardRepository } from '../../../../repositories';
+import makeCard from '../../../entities/card';
 import makeUpdateCard from './update-card';
 
-const updateCard = makeUpdateCard({ cardModel });
+const updateCard = makeUpdateCard({ cardRepository, makeCard });
 
-export default updateCard;
 export * from './update-card';
+export default updateCard;
