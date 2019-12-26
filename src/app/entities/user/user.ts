@@ -1,60 +1,103 @@
-import { BoardData } from '../board';
-
 export type UserFactoryDependencies = {
-  generateId: () => string;
   isValidEmail: (email: string) => boolean;
   hashValue: (value: string) => Promise<string>;
+  userRepository: UserRepository;
 };
 
-export type UserFactory = (userData: UserData) => Promise<User>;
+export type UserFactory = (userId?: string) => Promise<User>;
 
 export type UserData = {
-  readonly id?: string;
-  readonly name: string;
-  readonly email: string;
-  readonly password: string;
-  readonly avatar?: string | null;
-  readonly boards?: BoardData[];
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  avatar: string;
 };
 
 export type User = {
-  readonly getId: () => string;
+  readonly setName: (newName: string) => void;
+  readonly setEmail: (newEmail: string) => Promise<void>;
+  readonly setPassword: (newPassword: string) => Promise<void>;
+  readonly setAvatar: (newAvatar: string) => void;
   readonly getName: () => string;
   readonly getEmail: () => string;
   readonly getPassword: () => string;
-  readonly getAvatar: () => string | null;
+  readonly getAvatar: () => string;
   readonly getSessionExpirationTime: () => number;
+};
+
+export type UserRepository = {
+  findById: (userId: string) => Promise<UserData | null>;
+  findByEmail: (email: string) => Promise<UserData | null>;
+  save: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    avatar: string;
+  }) => Promise<UserData>;
 };
 
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
 
 export default function buildMakeUser({
-  generateId,
   isValidEmail,
   hashValue,
+  userRepository,
 }: UserFactoryDependencies): UserFactory {
-  return async function makeUser({
-    id = generateId(),
-    name,
-    email,
-    password,
-    avatar = null,
-  }): Promise<User> {
-    if (!name) throw new Error('Name must be provided');
-    if (name.trim().length < 3) throw new Error('Name must have at least 3 characters');
-    if (!isValidEmail(email)) throw new Error('Email must be a valid email');
-    if (!password || password.length < 8)
-      throw new Error('Password must have at least 8 characters');
+  return async function makeUser(userId): Promise<User> {
+    let userName: string;
+    let userEmail: string;
+    let userPassword: string;
+    let userAvatar: string;
 
-    const hashedPassword = await hashValue(password);
+    if (userId) {
+      const userData = await userRepository.findById(userId);
+      if (!userData) throw new Error('User not found');
+
+      userName = userData.name;
+      userEmail = userData.email;
+      userPassword = userData.password;
+      userAvatar = userData.avatar;
+    }
 
     return {
-      getId: (): string => id,
-      getName: (): string => name,
-      getEmail: (): string => email,
-      getPassword: (): string => hashedPassword,
-      getAvatar: (): string | null => avatar,
+      setName: (newName): void => {
+        validateName(newName);
+        userName = newName;
+      },
+      setEmail: async (newEmail): Promise<void> => {
+        if (userEmail === newEmail) return;
+        await validateEmail(newEmail);
+        userEmail = newEmail;
+      },
+      setPassword: async (newPassword): Promise<void> => {
+        validatePassword(newPassword);
+        userPassword = await hashValue(newPassword);
+      },
+      setAvatar: (newAvatar): void => {
+        userAvatar = newAvatar;
+      },
+      getName: (): string => userName,
+      getEmail: (): string => userEmail,
+      getPassword: (): string => userPassword,
+      getAvatar: (): string => userAvatar,
       getSessionExpirationTime: (): number => THREE_DAYS,
     };
+
+    function validateName(name: string): void {
+      if (!name || name.trim().length < 3) throw new Error('Name must have at least 3 characters');
+    }
+
+    async function validateEmail(email: string): Promise<void> {
+      if (!isValidEmail(email)) throw new Error('Email must be a valid email');
+
+      const user = await userRepository.findByEmail(email);
+      if (user) throw new Error('Email is already being used');
+    }
+
+    function validatePassword(password: string): void {
+      if (!password || password.length < 8)
+        throw new Error('Password must have at least 8 characters');
+    }
   };
 }

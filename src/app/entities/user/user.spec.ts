@@ -1,88 +1,136 @@
-import { getFakeUserData } from '../../../../__tests__/fixtures/user';
-import buildMakeUser, { UserFactory } from './user';
+import { getFakeUserData, getUserRepositoryMock } from '../../../../__tests__/fixtures/user';
+import buildMakeUser, { User, UserFactory } from './user';
 
 describe('User factory', () => {
   const validUserData = getFakeUserData();
   const userFactoryDependencies = {
-    generateId: jest.fn(),
+    userRepository: getUserRepositoryMock(),
     isValidEmail: jest.fn(),
     hashValue: jest.fn(),
   };
   let makeUser: UserFactory;
 
   beforeEach(() => {
-    userFactoryDependencies.generateId.mockReturnValue('123');
+    userFactoryDependencies.userRepository.findById.mockResolvedValue(null);
+    userFactoryDependencies.userRepository.findByEmail.mockResolvedValue(null);
     userFactoryDependencies.isValidEmail.mockReturnValue(true);
     userFactoryDependencies.hashValue.mockResolvedValue('hashed password');
     makeUser = buildMakeUser(userFactoryDependencies);
   });
 
-  it('throws if name has less than 3 characters', async () => {
-    await expect(makeUser({ ...validUserData, name: 'Ed' })).rejects.toThrow(
-      'Name must have at least 3 characters'
-    );
+  describe('data validation', () => {
+    let user: User;
+
+    beforeEach(async () => {
+      user = await makeUser();
+    });
+
+    it('throws if name has less than 3 characters', async () => {
+      expect(() => user.setName('Ed')).toThrow('Name must have at least 3 characters');
+    });
+
+    it('throws if name has less than 3 characters excluding white spaces', async () => {
+      expect(() => user.setName('Ed    ')).toThrow('Name must have at least 3 characters');
+    });
+
+    it('throws if email is not valid', async () => {
+      userFactoryDependencies.isValidEmail.mockReturnValue(false);
+      await expect(user.setEmail('invalid')).rejects.toThrow('Email must be a valid email');
+    });
+
+    it('does not validate the email if given email is the same as current one', async () => {
+      await user.setEmail('some@email.com');
+      jest.clearAllMocks();
+      await user.setEmail('some@email.com');
+      expect(userFactoryDependencies.isValidEmail).not.toHaveBeenCalled();
+    });
+
+    it('throws if email is already being used', async () => {
+      userFactoryDependencies.userRepository.findByEmail.mockResolvedValue(validUserData);
+      await expect(user.setEmail('alreadyUsed')).rejects.toThrow('Email is already being used');
+    });
+
+    it('does not check if email is unique if given email is the same as current one', async () => {
+      await user.setEmail('some@email.com');
+      jest.clearAllMocks();
+      await user.setEmail('some@email.com');
+      expect(userFactoryDependencies.userRepository.findByEmail).not.toHaveBeenCalled();
+    });
+
+    it('throws if password has less than 8 characters', async () => {
+      await expect(user.setPassword('1234567')).rejects.toThrow(
+        'Password must have at least 8 characters'
+      );
+    });
   });
 
-  it('throws if name has less than 3 characters excluding white spaces', async () => {
-    await expect(makeUser({ ...validUserData, name: 'Ed    ' })).rejects.toThrow(
-      'Name must have at least 3 characters'
-    );
+  describe('data retrieval', () => {
+    let user: User;
+
+    beforeEach(async () => {
+      user = await makeUser();
+    });
+
+    it('has the given name', async () => {
+      user.setName('name');
+      expect(user.getName()).toEqual('name');
+    });
+
+    it('has the given email', async () => {
+      await user.setEmail('email');
+      expect(user.getEmail()).toEqual('email');
+    });
+
+    it('has the given password hashed', async () => {
+      await user.setPassword('password');
+      expect(user.getPassword()).toEqual('hashed password');
+      expect(userFactoryDependencies.hashValue).toHaveBeenCalledWith('password');
+    });
+
+    it('has the given avatar', async () => {
+      user.setAvatar('avatar');
+      expect(user.getAvatar()).toEqual('avatar');
+    });
+
+    it('has a session expiration time of 3 days', async () => {
+      const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+      expect(user.getSessionExpirationTime()).toEqual(THREE_DAYS);
+    });
   });
 
-  it('throws if email is not valid', async () => {
-    userFactoryDependencies.isValidEmail.mockReturnValue(false);
-    await expect(makeUser({ ...validUserData, email: 'invalid' })).rejects.toThrow(
-      'Email must be a valid email'
-    );
-  });
+  describe('data retrieval when user ID is provided', () => {
+    beforeEach(() => {
+      userFactoryDependencies.userRepository.findById.mockResolvedValue(validUserData);
+    });
 
-  it('throws if password is not provided', async () => {
-    await expect(makeUser({ ...validUserData, password: '' })).rejects.toThrow(
-      'Password must have at least 8 characters'
-    );
-  });
+    it('finds the user data', async () => {
+      await makeUser('userId');
+      expect(userFactoryDependencies.userRepository.findById).toBeCalledWith('userId');
+    });
 
-  it('throws if password has less than 8 characters', async () => {
-    await expect(makeUser({ ...validUserData, password: '1234567' })).rejects.toThrow(
-      'Password must have at least 8 characters'
-    );
-  });
+    it('rejects if user was not found', async () => {
+      userFactoryDependencies.userRepository.findById.mockResolvedValue(null);
+      await expect(makeUser('userId')).rejects.toThrow('User not found');
+    });
 
-  it('generates an id', async () => {
-    userFactoryDependencies.generateId.mockReturnValue('RandomID');
-    const validUser = await makeUser({ ...validUserData, id: undefined });
-    expect(validUser.getId()).toEqual('RandomID');
-  });
+    it('populates the user name from the found user', async () => {
+      const user = await makeUser('userId');
+      expect(user.getName()).toEqual(validUserData.name);
+    });
 
-  it('has the given id', async () => {
-    const validUser = await makeUser({ ...validUserData, id: '123' });
-    expect(validUser.getId()).toEqual('123');
-  });
+    it('populates the user email from the found user', async () => {
+      const user = await makeUser('userId');
+      expect(user.getEmail()).toEqual(validUserData.email);
+    });
 
-  it('has the given name', async () => {
-    const validUser = await makeUser({ ...validUserData, name: 'name' });
-    expect(validUser.getName()).toEqual('name');
-  });
+    it('populates the user password from the found user', async () => {
+      const user = await makeUser('userId');
+      expect(user.getPassword()).toEqual(validUserData.password);
+    });
 
-  it('has the given email', async () => {
-    const validUser = await makeUser({ ...validUserData, email: 'email' });
-    expect(validUser.getEmail()).toEqual('email');
-  });
-
-  it('has the given password hashed', async () => {
-    const validUser = await makeUser({ ...validUserData, password: 'password' });
-    expect(validUser.getPassword()).toEqual('hashed password');
-    expect(userFactoryDependencies.hashValue).toHaveBeenCalledWith('password');
-  });
-
-  it('has the given avatar', async () => {
-    const validUser = await makeUser({ ...validUserData, avatar: 'avatar' });
-    expect(validUser.getAvatar()).toEqual('avatar');
-  });
-
-  it('has a session expiration time of 3 days', async () => {
-    const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
-    const validUser = await makeUser(validUserData);
-    expect(validUser.getSessionExpirationTime()).toEqual(THREE_DAYS);
+    it('populates the user avatar from the found user', async () => {
+      const user = await makeUser('userId');
+      expect(user.getAvatar()).toEqual(validUserData.avatar);
+    });
   });
 });

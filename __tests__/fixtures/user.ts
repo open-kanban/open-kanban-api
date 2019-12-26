@@ -3,14 +3,17 @@ import { UserData } from '../../src/app/entities/user';
 
 export const getFakeUserData = (): UserData => ({
   id: faker.random.alphaNumeric(10),
-  name: faker.lorem.word(),
+  name: faker.name.findName(),
   email: faker.internet.email(),
   password: faker.internet.password(8),
   avatar: faker.internet.avatar(),
 });
 
 export const makeFakeUser = () => ({
-  getId: jest.fn(),
+  setName: jest.fn(),
+  setEmail: jest.fn(),
+  setPassword: jest.fn(),
+  setAvatar: jest.fn(),
   getName: jest.fn(),
   getEmail: jest.fn(),
   getPassword: jest.fn(),
@@ -23,4 +26,10 @@ export const getUserModelMock = () => ({
   findById: jest.fn(),
   save: jest.fn(),
   isAuthorizedToModifyColumn: jest.fn(),
+});
+
+export const getUserRepositoryMock = () => ({
+  findByEmail: jest.fn(),
+  findById: jest.fn(),
+  save: jest.fn(),
 });
