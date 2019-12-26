@@ -1,20 +1,22 @@
-import { ColumnModel } from '..';
-import { ColumnData, ColumnFactory } from '../../../entities/column';
+import { ColumnData, ColumnFactory, ColumnRepository } from '../../../entities/column';
 
 export type CreateColumnDependencies = {
   makeColumn: ColumnFactory;
-  columnModel: ColumnModel;
+  columnRepository: ColumnRepository;
 };
 
-export type CreateColumn = (columnData: ColumnData) => Promise<Required<ColumnData>>;
+export type CreateColumn = (columnData: { boardId: string; name: string }) => Promise<ColumnData>;
 
 export default function makeCreateColumn({
   makeColumn,
-  columnModel,
+  columnRepository,
 }: CreateColumnDependencies): CreateColumn {
-  return async function createColumn({ name, boardId }): Promise<Required<ColumnData>> {
-    const column = makeColumn({ boardId, name });
-    const savedColumnData = await columnModel.save({
+  return async function createColumn({ name, boardId }): Promise<ColumnData> {
+    const column = await makeColumn();
+    column.setName(name);
+    column.setBoardId(boardId);
+
+    const savedColumnData = await columnRepository.save({
       boardId: column.getBoardId(),
       name: column.getName(),
     });

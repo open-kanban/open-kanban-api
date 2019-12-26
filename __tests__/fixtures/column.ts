@@ -8,7 +8,8 @@ export const getFakeColumnData = (): ColumnData => ({
 });
 
 export const makeFakeColumn = () => ({
-  getId: jest.fn(),
+  setBoardId: jest.fn(),
+  setName: jest.fn(),
   getBoardId: jest.fn(),
   getName: jest.fn(),
 });
