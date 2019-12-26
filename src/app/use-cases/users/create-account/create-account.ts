@@ -1,25 +1,29 @@
-import { UserModel } from '..';
-import { UserData, UserFactory } from '../../../entities/user';
+import { UserData, UserFactory, UserRepository } from '../../../entities/user';
 
 export type CreateAccountDependencies = {
   makeUser: UserFactory;
-  userModel: UserModel;
+  userRepository: UserRepository;
 };
 
-export type CreateAccount = (userData: UserData) => Promise<UserData>;
+export type CreateAccount = (userData: {
+  name: string;
+  email: string;
+  password: string;
+  avatar: string;
+}) => Promise<UserData>;
 
 export default function makeCreateAccount({
   makeUser,
-  userModel,
+  userRepository,
 }: CreateAccountDependencies): CreateAccount {
-  return async function createAccount(userData) {
-    const userExists = !!(await userModel.findByEmail(userData.email));
-    if (userExists) throw new Error('User already exists');
+  return async function createAccount({ name, email, password, avatar }): Promise<UserData> {
+    const user = await makeUser();
+    user.setName(name);
+    user.setEmail(email);
+    user.setPassword(password);
+    user.setAvatar(avatar);
 
-    const user = await makeUser(userData);
-
-    return userModel.save({
-      id: user.getId(),
+    return userRepository.save({
       name: user.getName(),
       email: user.getEmail(),
       password: user.getPassword(),
