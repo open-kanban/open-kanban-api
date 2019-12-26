@@ -1,5 +1,5 @@
-import { boardModel } from '../../../../models';
+import { boardRepository } from '../../../../repositories';
 import makeListBoards from './list-boards';
 
 export * from './list-boards';
-export default makeListBoards({ boardsModel: boardModel });
+export default makeListBoards({ boardRepository });
