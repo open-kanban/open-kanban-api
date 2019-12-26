@@ -1,10 +1,10 @@
-import { getFakeUserData, getUserModelMock } from '../../../../../__tests__/fixtures/user';
+import { getFakeUserData, getUserRepositoryMock } from '../../../../../__tests__/fixtures/user';
 import { UserData } from '../../../entities/user';
 import makeShowUser, { ShowUser } from './show-user';
 
 describe('Show user', () => {
   const showUserDependencies = {
-    userModel: getUserModelMock(),
+    userRepository: getUserRepositoryMock(),
   };
   let fakeUserData: UserData;
   let showUser: ShowUser;
@@ -12,7 +12,7 @@ describe('Show user', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     fakeUserData = getFakeUserData();
-    showUserDependencies.userModel.findById.mockResolvedValue(fakeUserData);
+    showUserDependencies.userRepository.findFullDataById.mockResolvedValue(fakeUserData);
     showUser = makeShowUser(showUserDependencies);
   });
 
@@ -21,13 +21,13 @@ describe('Show user', () => {
     await expect(result).rejects.toThrow('User not found');
   });
 
-  it('retrieves the user from the model', async () => {
+  it('retrieves the user from the user repository', async () => {
     await showUser('userId');
-    expect(showUserDependencies.userModel.findById).toHaveBeenCalledWith('userId');
+    expect(showUserDependencies.userRepository.findFullDataById).toHaveBeenCalledWith('userId');
   });
 
   it('throws if user was not found', async () => {
-    showUserDependencies.userModel.findById.mockResolvedValue(null);
+    showUserDependencies.userRepository.findFullDataById.mockResolvedValue(null);
     const result = showUser('userId');
     await expect(result).rejects.toThrow('User not found');
   });

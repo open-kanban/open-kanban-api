@@ -32,4 +32,5 @@ export const getUserRepositoryMock = () => ({
   findByEmail: jest.fn(),
   findById: jest.fn(),
   save: jest.fn(),
+  findFullDataById: jest.fn(),
 });

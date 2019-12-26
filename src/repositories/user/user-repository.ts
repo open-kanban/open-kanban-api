@@ -1,5 +1,5 @@
 import { Document, model, Schema, Types } from 'mongoose';
-import { UserData, UserRepository } from '../../app/entities/user';
+import { UserData, UserFullData, UserRepository } from '../../app/entities/user';
 import { BoardDocument } from '../../models/board/board-model';
 
 const columnSchema = new Schema({
@@ -32,22 +32,28 @@ export const User = model<UserDocument>('User', userSchema);
 
 export default function makeUserRepository(): UserRepository {
   return {
-    findByEmail: async (email: string): Promise<UserData | null> => {
+    async findByEmail(email: string): Promise<UserData | null> {
       const user = await User.findOne({ email });
       if (!user) return null;
 
       return parseUserDocumentToUserData(user);
     },
-    findById: async (userId): Promise<UserData | null> => {
+    async findById(userId): Promise<UserData | null> {
       const user = await User.findById(userId);
       if (!user) return null;
 
       return parseUserDocumentToUserData(user);
     },
-    save: async ({ name, email, password, avatar }): Promise<UserData> => {
+    async save({ name, email, password, avatar }): Promise<UserData> {
       const user = await User.create({ name, email, password, avatar });
 
       return parseUserDocumentToUserData(user);
+    },
+    async findFullDataById(userId): Promise<UserFullData | null> {
+      const user = await User.findById(userId);
+      if (!user) return null;
+
+      return parseUserDocumentToUserFullData(user);
     },
   };
 }
@@ -58,4 +64,15 @@ const parseUserDocumentToUserData = (userDocument: UserDocument): UserData => ({
   email: userDocument.email,
   password: userDocument.password,
   avatar: userDocument.avatar,
+});
+
+const parseUserDocumentToUserFullData = (userDocument: UserDocument): UserFullData => ({
+  ...parseUserDocumentToUserData(userDocument),
+  boards: userDocument.boards.map(boardDocument => ({
+    id: boardDocument.id,
+    userId: userDocument.id,
+    invitedUsersIds: boardDocument.invitedUsersIds,
+    name: boardDocument.name,
+    columns: boardDocument.columns,
+  })),
 });

@@ -14,6 +14,8 @@ export type BoardData = {
   readonly columns: ColumnData[];
 };
 
+export type BoardFullData = BoardData & { columns: ColumnData[] };
+
 export type Board = {
   readonly getId: () => string;
   readonly getUserId: () => string;

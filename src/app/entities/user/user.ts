@@ -1,3 +1,5 @@
+import { BoardFullData } from '../board';
+
 export type UserFactoryDependencies = {
   isValidEmail: (email: string) => boolean;
   hashValue: (value: string) => Promise<string>;
@@ -14,6 +16,8 @@ export type UserData = {
   avatar: string;
 };
 
+export type UserFullData = UserData & { boards: BoardFullData[] };
+
 export type User = {
   readonly setName: (newName: string) => void;
   readonly setEmail: (newEmail: string) => Promise<void>;
@@ -27,14 +31,15 @@ export type User = {
 };
 
 export type UserRepository = {
-  findById: (userId: string) => Promise<UserData | null>;
-  findByEmail: (email: string) => Promise<UserData | null>;
-  save: (userData: {
+  readonly findById: (userId: string) => Promise<UserData | null>;
+  readonly findByEmail: (email: string) => Promise<UserData | null>;
+  readonly save: (userData: {
     name: string;
     email: string;
     password: string;
     avatar: string;
   }) => Promise<UserData>;
+  readonly findFullDataById: (userId: string) => Promise<UserFullData | null>;
 };
 
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
