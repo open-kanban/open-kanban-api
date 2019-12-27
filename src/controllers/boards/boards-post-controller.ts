@@ -1,5 +1,4 @@
 import { Controller, HttpResponse } from '..';
-import { BoardData } from '../../app/entities/board';
 import { CreateBoard } from '../../app/use-cases/boards/create-board';
 
 export type BoardsPostControllerDependencies = {
@@ -10,17 +9,10 @@ export default function makeBoardsPostController({
   createBoard,
 }: BoardsPostControllerDependencies): Controller {
   return async function boardsPostController({ body, params, authData }): Promise<HttpResponse> {
-    const { userId } = params;
-    if (userId !== authData.userId)
-      return {
-        statusCode: 403,
-        body: { error: 'Not authorized' },
-      };
-
-    const boardData = body as BoardData;
+    const { userId, name } = body;
 
     try {
-      const board = await createBoard(boardData);
+      const board = await createBoard({ userId, name });
       return {
         statusCode: 201,
         body: { board },

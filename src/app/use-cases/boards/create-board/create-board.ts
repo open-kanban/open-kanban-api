@@ -14,7 +14,7 @@ export default function makeCreateBoard({
   return async function createBoard({ name, userId }): Promise<BoardData> {
     const board = await makeBoard();
     board.setName(name);
-    board.setUserId(userId);
+    await board.setUserId(userId);
 
     return boardRepository.save({
       userId: board.getUserId(),

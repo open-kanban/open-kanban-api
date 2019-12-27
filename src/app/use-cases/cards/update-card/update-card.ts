@@ -23,7 +23,7 @@ export default function makeUpdateCard({
   return async function updateCard({ authentication, cardId, cardData }): Promise<CardData> {
     const userId = authentication.authenticate();
     const card = await makeCard(cardId);
-    card.setColumnId(cardData.columnId);
+    await card.setColumnId(cardData.columnId);
     card.setName(cardData.name);
     card.setDescription(cardData.description);
 

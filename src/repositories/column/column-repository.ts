@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ColumnData, ColumnRepository } from '../../app/entities/column';
 import { User } from '../user/user-repository';
 
@@ -28,8 +28,8 @@ export default function makeColumnRepository(): ColumnRepository {
     async findById(columnId: string): Promise<ColumnData | null> {
       const results = await User.aggregate()
         .unwind('boards', 'boards.columns')
-        .match({ 'boards.columns._id': columnId })
-        .project({ foundColumn: 'boards.columns' });
+        .match({ 'boards.columns._id': Types.ObjectId(columnId) })
+        .project({ foundColumn: '$boards.columns' });
 
       if (!results.length) return null;
 
@@ -40,13 +40,13 @@ export default function makeColumnRepository(): ColumnRepository {
     async getBoardMembers(columnId: string): Promise<string[]> {
       const results = await User.aggregate()
         .unwind('boards', 'boards.columns')
-        .match({ 'boards.columns._id': columnId })
-        .project({ foundBoard: 'boards' });
+        .match({ 'boards.columns._id': Types.ObjectId(columnId) })
+        .project({ foundBoard: '$boards' });
 
       if (!results.length) return [];
       const user = results[0];
       const members = user.foundBoard.invitedUsersIds;
-      members.push(user._id);
+      members.push(user._id.toHexString());
 
       return members;
     },

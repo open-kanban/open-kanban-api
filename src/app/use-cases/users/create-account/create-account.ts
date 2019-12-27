@@ -19,8 +19,8 @@ export default function makeCreateAccount({
   return async function createAccount({ name, email, password, avatar }): Promise<UserData> {
     const user = await makeUser();
     user.setName(name);
-    user.setEmail(email);
-    user.setPassword(password);
+    await user.setEmail(email);
+    await user.setPassword(password);
     user.setAvatar(avatar);
 
     return userRepository.save({

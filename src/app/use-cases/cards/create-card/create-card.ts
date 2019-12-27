@@ -11,7 +11,7 @@ export type CreateCard = (cardData: {
   columnId: string;
   name: string;
   description: string;
-}) => Promise<Required<CardData>>;
+}) => Promise<CardData>;
 
 export default function makeCreateCard({
   makeCard,
@@ -25,7 +25,7 @@ export default function makeCreateCard({
   }): Promise<CardData> {
     const userId = authentication.authenticate();
     const card = await makeCard();
-    card.setColumnId(columnId);
+    await card.setColumnId(columnId);
     card.setName(name);
     card.setDescription(description);
 
